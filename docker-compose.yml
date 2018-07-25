@@ -1,0 +1,34 @@
+version: '3'
+services: 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.3.2
+    ports:
+      - "${ES_REST_PORT:-9200}:9200"
+      - "9300:9300"
+    container_name: elasticsearch
+    hostname: elasticsearch
+    environment:
+      - http.host=0.0.0.0
+      - transport.host=127.0.0.1
+  apm-server:
+    image: docker.elastic.co/apm/apm-server:6.3.2
+    environment:
+      - apm-server.host=localhost:8200
+      - output.elasticsearch.hosts=elasticsearch:9200
+      - setup.kibana.host=kibana:5601
+    ports:
+      - "8200:8200"
+    links: 
+      - elasticsearch
+  kibana:
+    image: "docker.elastic.co/kibana/kibana:6.3.2"
+    ports:
+      - "5601:5601"
+    environment:
+      SERVER_HOST: "0.0.0.0"
+      SERVER_NAME: "kibana"
+      ELASTICSEARCH_URL: "http://elasticsearch:9200"
+    links: 
+      - elasticsearch
+    depends_on:
+      - elasticsearch
